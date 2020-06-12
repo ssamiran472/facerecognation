@@ -110,9 +110,7 @@
         setInterval(async () => {
             const detections = await faceapi
               .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-              //.withFaceLandmarks()
-              //.withFaceExpressions()
-              //.withAgeAndGender();
+              
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
             canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
@@ -148,18 +146,6 @@
                     }
                 }
             )
-
-            //new faceapi.draw.DrawTextField(
-              //[`${faceapi.utils.round(name, 0)}`],
-              //[`${data_name}`],
-            //  bottomRight
-            //).draw(canvas); 
-            //faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-            //faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-            //const age = resizedDetections[0].age;
-            //const interpolatedAge = interpolateAgePredictions(age);
-          
-        
         }, 200);
     });
 
