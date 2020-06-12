@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/css/styles.css' %}">
+    <script src="{% static 'face-api.min.js'%}"></script>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          width: 100vw;
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        #video{
+          height: auto;
+          max-width: 100%;
+        }
+        canvas {
+          position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay muted></video>
+    <canvas id="capture" width="240" height="240"></canvas>
+    <div id="snapshot" class='text-center' style="display: none">
+          
+    </div>
+<script>
+
+    const video = document.getElementById("video"); // video tag's variable.
+
+    const snapshot = document.getElementById("snapshot"); // triger the snaphshot div
+    const capture = document.getElementById("capture"); // canvas  for capturing photo.
+    const height = window.innerHeight;
+    const width = window.innerWidth;
+    video.height = height;
+    video.width = width; 
+    console.log(height, width); 
+    const startStream = true;
+    //let predictedAges = [];
+
+    Promise.all([
+        //faceapi.nets.mtcnn.loadFromUri("/static/models"),
+        faceapi.nets.tinyFaceDetector.loadFromUri("/static/models"),
+        faceapi.nets.faceRecognitionNet.loadFromUri("/static/models")
+        //faceapi.nets.faceLandmark68Net.loadFromUri("/static/models"),
+        //faceapi.nets.faceExpressionNet.loadFromUri("/static/models"),
+        //faceapi.nets.ageGenderNet.loadFromUri("/static/models")
+    ]).then(startVideo);
+
+
+    var constraints = { audio: false, video: { width: width, height: height } }; 
+    function startVideo(){
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(mediaStream) {
+            var video = document.querySelector('video');
+            video.srcObject = mediaStream;
+            video.onloadedmetadata = function(e) {
+              video.play();
+            };
+        })
+        .catch(function(err) { console.log(err.name + ": " + err.message); });
+    }
+
+    function dataURItoBlob( dataURI ) {
+        var byteString = atob( dataURI.split( ',' )[ 1 ] );
+        var mimeString = dataURI.split( ',' )[ 0 ].split( ':' )[ 1 ].split( ';' )[ 0 ];
+
+        var buffer	= new ArrayBuffer( byteString.length );
+        var data	= new DataView( buffer );
+
+        for( var i = 0; i < byteString.length; i++ ) {
+
+          data.setUint8( i, byteString.charCodeAt( i ) );
+        }
+
+        return new Blob( [ buffer ], { type: mimeString } );
+    }
+
+    function captureSnapshot() {
+        var ctx = capture.getContext( '2d' );
+        var img = new Image();
+        img.id = 'img';
+        ctx.drawImage( video, 0, 0, capture.width, capture.height );
+
+        img.src		= capture.toDataURL( "image/jpg" );
+        img.width	= 240;
+        snapshot.innerHTML = '';
+        snapshot.appendChild( img );
+        return
+      
+    }
+
+    video.addEventListener("playing", () => {
+        const canvas = faceapi.createCanvasFromMedia(video);
+        document.body.append(canvas);
+
+        const displaySize = { width: video.width, height: video.height };
+        //const displaySize = { width: width, height: height };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        setInterval(async () => {
+            const detections = await faceapi
+              .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+              //.withFaceLandmarks()
+              //.withFaceExpressions()
+              //.withAgeAndGender();
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+            canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+            const byte_image = captureSnapshot()
+            const dataURI	= snapshot.firstChild.getAttribute( "src" );
+            const blob_image = dataURItoBlob(dataURI);
+            faceapi.draw.drawDetections(canvas, resizedDetections);
+        
+            var form = new FormData();
+            form.append("images", blob_image);
+            let xml = new XMLHttpRequest();
+            xml.open( "POST", "{% url 'recognizing_image' %}", true )
+            xml.onload = function(){
+              if (xml.status === 200){
+                let data=JSON.parse(xml.responseText);
+                localStorage.setItem('names', JSON.stringify(data));
+              }
+            }
+            xml.send( form );
+            //faceapi.draw.value('samiran');
+            let data_name= '';
+            if(localStorage.getItem('names') !== undefined){
+              //localStorage.getItem('names');
+            let data_names = JSON.parse(localStorage.getItem('names'));
+            data_name = data_names;
+            }
+            data_name.forEach((bestMatch, i) => {
+                if(resizedDetections[i].box !== undefined){
+                    const box = resizedDetections[i].box
+                    const text = bestMatch.toString()
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: text })
+                    drawBox.draw(canvas)
+                    }
+                }
+            )
+
+            //new faceapi.draw.DrawTextField(
+              //[`${faceapi.utils.round(name, 0)}`],
+              //[`${data_name}`],
+            //  bottomRight
+            //).draw(canvas); 
+            //faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+            //faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+            //const age = resizedDetections[0].age;
+            //const interpolatedAge = interpolateAgePredictions(age);
+          
+        
+        }, 200);
+    });
+
+  
+    function get_response(image){
+      const response='';
+      var form = new FormData();
+      form.append("images", image);
+      fetch('{% url "recognizing_image" %}', {
+      method: 'PUT',
+      body: form
+      })
+      .then((response) => response.json())
+      .then((result) => {
+        response=result.data;
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+      
+    } 
+    {% comment %} 
+    function get_response(image) {
+      return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+          resolve(this.responseText);
+        };
+        xhr.onerror = reject;
+        xhr.open('GET', url);
+        xhr.send();
+      });
+    }
+    {% endcomment %}
+    {% comment %} 
+    ajax("/echo/json")
+      .then(function(result) {
+        // Code depending on result
+      })
+      .catch(function() {
+        // An error occurred
+      }); {% endcomment %}
+    // for zoom in and zoom out.
+    {% comment %} navigator.mediaDevices.getUserMedia({video: true})
+    .then(async mediaStream => {
+      document.querySelector('video').srcObject = mediaStream;
+
+      // Once crbug.com/711524 is fixed, we won't need to wait anymore. This is
+      // currently needed because capabilities can only be retrieved after the
+      // device starts streaming. This happens after and asynchronously w.r.t.
+      // getUserMedia() returns.
+      await sleep(1000);
+
+      const track = mediaStream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      const settings = track.getSettings();
+
+      const input = document.querySelector('input[type="range"]');
+
+      // Check whether zoom is supported or not.
+      if (!('zoom' in capabilities)) {
+        return Promise.reject('Zoom is not supported by ' + track.label);
+      }
+
+      // Map zoom to a slider element.
+      input.min = capabilities.zoom.min;
+      input.max = capabilities.zoom.max;
+      input.step = capabilities.zoom.step;
+      input.value = settings.zoom;
+      input.oninput = function(event) {
+        track.applyConstraints({advanced: [ {zoom: event.target.value} ]});
+      }
+      input.hidden = false;
+    })
+    .catch(error => ChromeSamples.log('Argh!', error.name || error));
+
+    /* Utils */
+
+    function sleep(ms = 0) {
+      return new Promise(r => setTimeout(r, ms));
+    } {% endcomment %}
+
+
+</script>
+</body>
+</html>

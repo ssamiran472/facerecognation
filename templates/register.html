@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <title>Registration</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    
+    <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
+    <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+
+
+    <script type="text/javascript" src="{% static 'webcam.min.js' %}"></script>
+</head>
+<body>
+<div id='form'>
+<div id='alrt'></div>
+<h3 id="back"><a href="/"><button class='btn btn-active bg-success text-light'>Go back</button></a></h3>
+<div class='header text-center' id='heading_element'>
+    <h1 class='h1 text-light'>welcome {{request.user.username}}</h1>
+    <h1 class='h1 text-light'>Register</h1>
+    <p class='h6 text-light'>Please fill in this form to register for attendance</p>
+    <hr>
+</div>
+<div id="results" ></div>
+<div class="container-fluid">
+  <div class='row'>
+    <div class='col-sm-6'>
+    <div class='form1 form-group' id='form_element'>
+      <label for="Name" class='labels text-light'><b>Name</b></label><br>
+      <input class="inputexts form-control form-inline" id='name' autofocus type="text" placeholder="Enter Full Name" name='Name' required><br>
+
+      <label for="ID"  class='labels text-light'><b>Employee ID</b></label><br>
+      <input class="inputexts form-control" type="text" placeholder="Enter your Employee ID No." id="ID" required><br>
+
+      <div id="date-picker-example" class="md-form md-outline input-with-post-icon datepicker">
+          <label for="DOB"  class='labels text-light'><b>Birthday</b></label><br>
+          <input class="form-control" type="date" placeholder='DD/MM/YYYY' id='DOB' required>
+          <i class="fas fa-calendar input-prefix" tabindex=0></i>
+      </div>
+      <br>
+      <div class="radio1">
+        <h3 class='h5 text-light'>Gender</h3>
+        <input type="radio" id="male" name="gender" value="Male" required>
+        <label class='text-light' for="male">Male</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="radio" id="female" name="gender" value="Female" required>
+        <label class='text-light' for="female">Female</label>
+      </div>
+    </div>
+    
+    </div>
+    <div class='col-sm-6'>
+      <div class="cam_stream">
+        <div>
+          <div class='text-center'>
+            <video id="stream" style="height: 10%; width:60%"></video>
+          </div>
+          <div class='text-center'>
+            <button id="btn-capture" type="button" class="button btn btn-lg btn-active bg-primary text-light">
+              Capture Image
+          </button>
+          </div>
+          <div>
+            <canvas id="capture" width="240" height="240"></canvas>
+          </div>
+        </div>
+        <div id="snapshot" class='text-center' style="display: none">
+        
+        </div>
+        <div class='text-center'><button id='cap-again' class='btn btn-lg btn-active bg-primary text-light' style='display: none;' onclick = 'startStreaming()'>capture again</button></div>
+
+      </div>
+
+    </div>
+  </div>
+
+  
+  
+  <div class="regbin text-sm-center">
+    <button type="button" id='register' class='btn btn-lg text-light text-center h1 bg-success' onclick='upload()'>
+    Register</button>
+
+  </div>
+</div>
+  <div id="lock-modal"></div>
+  <div id="loading-circle"></div>
+</div>
+<script>
+
+// The buttons to start & stop stream and to capture the image
+var btnStart = document.getElementById( "btn-start" );
+var btnStop = document.getElementById( "btn-stop" );
+var btnCapture = document.getElementById( "btn-capture" );
+
+// The stream & capture
+var stream = document.getElementById( "stream" );
+var capture = document.getElementById( "capture" );
+var snapshot = document.getElementById( "snapshot" );
+
+// lock-model div set to a veriable.
+const lockModal = $("#lock-modal");
+
+// circle div set to a veriable.
+const loadingCircle = $("#loading-circle");
+
+
+let register = document.getElementById('register');
+// The video stream
+var cameraStream = null;
+
+// Attach listeners
+{% comment %} btnStart.addEventListener( "click", startStreaming );
+btnStop.addEventListener( "click", stopStreaming ); {% endcomment %}
+
+// Start Streaming
+function startStreaming() {
+	var mediaSupport = 'mediaDevices' in navigator;
+
+	if( mediaSupport && null == cameraStream ) {
+
+		navigator.mediaDevices.getUserMedia( { video: true } )
+		.then( function( mediaStream ) {
+
+			cameraStream = mediaStream;
+
+			stream.srcObject = mediaStream;
+
+			stream.play();
+		})
+		.catch( function( err ) {
+
+			console.log( "Unable to access camera: " + err );
+		});
+	}
+	else {
+
+		alert( 'Your browser does not support media devices.' );
+
+		return;
+	}
+  document.getElementById('snapshot').style.display='none';
+  document.getElementById('stream').style.display = 'inline';
+  document.getElementById('btn-capture').style.display = 'inline';
+  capture.style.display = 'none';
+  document.getElementById("cap-again").style.display = 'none';
+}
+startStreaming();
+
+// Stop Streaming
+function stopStreaming() {
+
+	if( null != cameraStream ) {
+
+		var track = cameraStream.getTracks()[ 0 ];
+
+		track.stop();
+		stream.load();
+
+		cameraStream = null;
+	}
+}
+btnCapture.addEventListener( "click", captureSnapshot );
+
+function captureSnapshot() {
+
+	if( null != cameraStream ) {
+
+		var ctx = capture.getContext( '2d' );
+		var img = new Image();
+    img.id = 'img';
+		ctx.drawImage( stream, 0, 0, capture.width, capture.height );
+
+		img.src		= capture.toDataURL( "image/jpg" );
+		img.width	= 240;
+		snapshot.innerHTML = '';
+    snapshot.style.display='block';
+    document.getElementById('stream').style.display = 'none';
+    document.getElementById('btn-capture').style.display = 'none';
+    capture.style.display = 'none';
+    document.getElementById("cap-again").style.display = 'inline';
+		snapshot.appendChild( img );
+		
+    stopStreaming();
+    
+	}
+}
+
+function dataURItoBlob( dataURI ) {
+	var byteString = atob( dataURI.split( ',' )[ 1 ] );
+	var mimeString = dataURI.split( ',' )[ 0 ].split( ':' )[ 1 ].split( ';' )[ 0 ];
+
+	var buffer	= new ArrayBuffer( byteString.length );
+	var data	= new DataView( buffer );
+
+	for( var i = 0; i < byteString.length; i++ ) {
+
+		data.setUint8( i, byteString.charCodeAt( i ) );
+	}
+
+	return new Blob( [ buffer ], { type: mimeString } );
+}
+
+function upload(){
+  var request = new XMLHttpRequest();
+
+  request.open( "POST", "{% url 'register' %}", true );
+
+  request.onload = function(){
+    if(request.status == 200){
+      // lock div and circle div's display property set to block to show 
+      // it.
+      lockModal.css('display', 'none');
+      loadingCircle.css('display', 'none');
+      let div_where_alert_will_appear = document.getElementById('alrt');
+      return div_where_alert_will_appear.innerHTML = `
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          Your registration complete.
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>`;
+        
+    }
+  
+    // lock div and circle div's display property set to block to show 
+    // it.
+    lockModal.css('display', 'none');
+    loadingCircle.css('display', 'none');
+  }
+
+
+
+  var data	= new FormData();
+  let image_id = document.getElementById('img');
+if(image_id == null || image_id == undefined){
+  let div_where_alert_will_appear = document.getElementById('alrt');
+  return div_where_alert_will_appear.innerHTML = `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Please!</strong> check all the field and capture a photo.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>`;
+}else{
+var dataURI	= snapshot.firstChild.getAttribute( "src" );
+var imageData   = dataURItoBlob( dataURI );
+}
+var name = document.getElementById('name').value;
+var id = document.getElementById('ID').value;
+var dob = document.getElementById("DOB").value;
+var gender = '';
+if (document.getElementById('male').checked) {
+  gender = document.getElementById('male').value;
+}
+else{gender = document.getElementById('female').value}
+data.append( "image", imageData, "myimage.jpg" );
+data.append('name', name);
+data.append('id', id);
+data.append('dob', dob);
+data.append('gender', gender);
+
+if(name != '' && id !== '' && dob != '' && gender !='' && image_id != null && image_id !== undefined){
+  request.send( data );
+    
+  // lock div and circle div's display property set to block to show 
+  // it.
+  lockModal.css('display', 'block');
+  loadingCircle.css('display', 'block');
+
+}
+else{
+  let div_where_alert_will_appear = document.getElementById('alrt');
+  return div_where_alert_will_appear.innerHTML = `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Please!</strong> check all the field and capture a photo.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>`;
+}
+}
+
+  {% comment %} $('#DOB').datepicker({
+            uiLibrary: 'bootstrap4',
+            dateFormat: 'dd/mm/yyyy'
+  });  {% endcomment %}
+
+</script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+</html>

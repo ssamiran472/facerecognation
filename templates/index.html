@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to FaceRec</title>
+    <!-- my css file -->
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <!-- boostrap4 link -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!-- google jquery link -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- jqery link -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <!-- w3 school css link -->
+    {% comment %} <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> {% endcomment %}
+</head>
+
+<body>
+    <!-- side bar for large display -->
+    <div class="bg-light" style="display:none" id="mySidebar">
+        <button class="btn btn-active text-light bg-primary"
+        onclick="sideBar_close()">Close &times;</button>
+        <a class='anchor' href="{% url 'register' %}" class="w3-bar-item w3-button"><li><span>Register New Face</span></li></a>
+        
+        <li id='recognize'><span>Recognize Faces</span></li>
+        <a class='anchor' href="#" class="w3-bar-item w3-button"><li><span>View Attendance Insights</span></li></a>
+
+        <div id='form' class='text-center p-3' style='display: none'>
+            <button class='btn btn-active' id='disapper'>&#10006;</button>
+            <h2 class='h3'>Verify Authorization</h2>
+            <form method='post' class='text-center' action='{% url "extra_checking" %}'>
+                {% csrf_token %}
+                <input type='password' name='password' id='password' placeholder='enter your password' required>
+                <button type='submit' class='btn btn-sm btn-active bg-success text-light text-center'>submit</button>
+            </form>
+        </div>
+
+    </div>
+    <!-- main -->
+    <div id='main'>
+        <div id='side-bar-open' class="">
+            <button id="openNav" class="btn btn-sm bg-info text-light" onclick="sideBar_open()">&#9776;</button>
+            
+        </div>
+    <!--Header Section-->
+        <div class='text-right'>
+            <a id='logout' href='{% url 'logout' %}'><button class='btn btn-sm text-right bg-danger text-light   text-center'>log out</button></a>
+        </div>
+    <div class='text-center mt-3'>
+        <h1 class='h2 text-light'>Welcome {{request.user.username}}</h1>
+        <h1 class='text-light h2'>FaceRec</h1>
+        <p id='ptag' class='text-light text-center display1'>An AI based Automated Attendance System</p>
+        <hr>
+    </div>
+        <!--Primary Container for mobile views -->
+        <div  class="container-fluid">
+            <!--Secondary Container for registration redirection-->
+            <div class='row'>
+                <div class="col-sm-4 text-center"><br>
+                    <a href="{% url 'register' %}">
+                        <img id='reg' class='rounded' style="height: 200px; width:200px;" src="{% static 'register.png' %}"><br>
+                        <p class='text-light'   id="Regs">Register New Face</p>
+                    </a>
+                </div>
+
+                <!--Secondary Container for recognition redirection-->
+                <div class="col-sm-4 text-center"><br>
+                        <img id='rec' class='rounded' style="height: 200px; width:200px;" src="{% static 'recognize.jpg' %}"><br>
+                        <p class='text-light' data-toggle="modal" data-target="#exampleModal" id="Record">Recognize Faces</p>
+                    
+                    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Verify Authorization</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form class='form-control' method='post' action='{% url "extra_checking" %}'>
+                                {% csrf_token %}
+                                <label for='input-pass' class='h4'>password:</label>
+                                <input id='input-pass' type='password' name='password' class='form-control'>
+                                <button class='btn btn-active btn-success'>submit</button>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <!--Secondary Container for analytics dashboard redirection-->
+                <div class=" col-sm-4 text-center"><br>
+                    <a href="#">
+                        <img id='ana' class='rounded' style="height: 200px; width:200px;" src="{% static 'analysis.jpg' %}"><br>
+                        <p class='text-light' id="Anas">View Attendance Insights</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div id='info'>
+            <!-- for some instraction and some information to show large device -->
+            <p>
+
+                
+            </p>
+        </div>
+    </div>
+<script>
+    function sideBar_open() {
+    document.getElementById("mySidebar").style.width = "25%";
+    document.getElementById("mySidebar").style.display = "block";
+    //document.getElementById("openNav").style.display = 'none';
+    }
+    function sideBar_close() {
+    document.getElementById("main").style.marginLeft = "0%";
+    document.getElementById("mySidebar").style.display = "none";
+    //document.getElementById("openNav").style.display = "block";
+    }
+    
+    let form = document.getElementById('form');
+    let disapper = document.getElementById("disapper");
+    let recognize = document.getElementById('recognize');
+    recognize.addEventListener('click',()=>form.style.display='block');
+    disapper.addEventListener('click',()=>form.style.display='none');
+
+</script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+</html>
