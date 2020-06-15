@@ -56,7 +56,7 @@
         //faceapi.nets.ageGenderNet.loadFromUri("/static/models")
     ]).then(startVideo);
 
-
+    
     var constraints = { audio: false, video: { width: width, height: height } }; 
     function startVideo(){
         navigator.mediaDevices.getUserMedia(constraints)
@@ -84,6 +84,7 @@
 
         return new Blob( [ buffer ], { type: mimeString } );
     }
+
 
     function captureSnapshot() {
         var ctx = capture.getContext( '2d' );

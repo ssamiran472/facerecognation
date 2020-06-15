@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User  
 
+import datetime
+
 # Create your models here.
 def get_upload_path(instance, filename):
     return 'documents/{0}/static/{1}/{2}'.format(instance.name_of_employee.user.username, instance.name_of_employee.name, filename)
@@ -15,3 +17,5 @@ class EmployeeInfo(models.Model):
 class Images(models.Model):
     name_of_employee = models.ForeignKey(EmployeeInfo, on_delete=models.CASCADE)
     images = models.ImageField(upload_to=get_upload_path)
+
+

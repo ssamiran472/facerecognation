@@ -1,7 +1,7 @@
 body{
     background-image: url('../bg3.jpg');
     background-repeat: no-repeat;
-    background-size: auto;
+    background-size: cover;
     /* background-color: #4CAF50;*/
 }
 
@@ -57,8 +57,8 @@ body{
 
 #img {
     vertical-align: middle;
-    margin: 10px;
-    width: 50%;
+    
+    width: 100%;
     border-style: none;
 /* margin-top: 43vh; */
 }
@@ -117,4 +117,10 @@ body{
         width: 60%;
     }
 
+}
+canvas{
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
 }
