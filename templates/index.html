@@ -19,9 +19,8 @@
 
 <body>
     <!-- side bar for large display -->
-    <div class="bg-light" style="display:none" id="mySidebar">
-        <button class="btn btn-active text-light bg-primary"
-        onclick="sideBar_close()">Close &times;</button>
+    <div class="bg-light" id="mySidebar">
+        
         <a class='anchor' href="{% url 'register' %}" class="w3-bar-item w3-button"><li><span>Register New Face</span></li></a>
         
         <li id='recognize'><span>Recognize Faces</span></li>
@@ -40,10 +39,7 @@
     </div>
     <!-- main -->
     <div id='main'>
-        <div id='side-bar-open' class="">
-            <button id="openNav" class="btn btn-sm bg-info text-light" onclick="sideBar_open()">&#9776;</button>
-            
-        </div>
+        
     <!--Header Section-->
         <div class='text-right'>
             <a id='logout' href='{% url 'logout' %}'><button class='btn btn-sm text-right bg-danger text-light   text-center'>log out</button></a>

@@ -3,14 +3,12 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 
-from xlutils.copy import copy
-from datetime import datetime, date
 import os
-import xlwt
-from  xlwt import Workbook
-from xlrd import open_workbook
+from datetime import date
+import datetime
+import csv
 
-from .models import *
+from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
 # from .register import register
 
@@ -81,6 +79,7 @@ def registering(request):
             add_register_employee_sheet(name, ids, request)
         return JsonResponse({'success': 'file uploaded successful'}, safe=False)
 
+
 # logout.
 @login_required(login_url="/login/")
 def loging_out(request):
@@ -97,6 +96,7 @@ def recognize(request):
         except KeyError:
             return HttpResponseRedirect(reverse('extra_checking'))
         return render(request, 'recognize2.html')
+
 
 # extra checking for go to recognation page
 def secoend_time(request):
@@ -122,7 +122,7 @@ def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
         names=['samiran']
-        do_attendance(names, request)
+        do_attendance2(names, request)
 
         
         return JsonResponse(names, safe=False)
@@ -173,67 +173,70 @@ def get_attendance_data(request):
     return response
 
 
-def do_attendance(names, request):
+def do_attendance2(names, request):
     for name in names:
-        paths = './media/documents/'+ str(request.user.username)
+        path = './media/documents/' + str(request.user.username)
         todays = date.today()
         file_name = ( str(request.user.username) 
                     + str(todays.year) 
                     + str(todays.month)
-                    + '.xls'
+                    + '.csv'
                     )
-        file_path = paths + '/' + file_name
+        file_path = path + '/' + file_name
         date_pattern = ( str(todays.year) +'-'+ 
                          str(todays.month) +'-'+ 
                          str(todays.day)
                         )
-        # using style to bold the name of file heading.
-        style = xlwt.easyxf('font: bold 1') 
-        if not os.path.isfile(file_path):
-            workbook = Workbook()  # open a workbook
-            sheet1 = workbook.add_sheet('Sheet 1') 
-
+        column = ['name', 'id', 'total',  date_pattern]
+        employes = EmployeeInfo.objects.filter(
+            user = request.user
+        ).values('name', 'employee_id')
         
-            # writing and style the  heading.
-            sheet1.write( 0, 0, 'Name', style ) 
-            sheet1.write( 0, 1, 'Employee Id', style ) 
-            sheet1.write( 0, 2, 'Total Presence', style )
-            sheet1.write( 0, 3, date_pattern, style)
-            # save the file.
-            all_users = EmployeeInfo.objects.filter( user = request.user ).values('name', 'employee_id')
-            index = 1
-            while(index < len(all_users)):
-                sheet1.write( index, 0, all_users[index]['name'] )
-                sheet1.write( index, 1, all_users[index]['employee_id'] )
-                sheet1.write( index, 3, "A" )
-                index += 1
-            workbook.save(file_path)
+        current_time = datetime.datetime.now().strftime('%H:%M')
+
+        if not os.path.isfile(file_path):
+            with open(file_path, 'w', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(column)
+                rows = []
+                for employee in employes:
+                    
+                    if name == employee['name']:
+                        row = [employee['name'], employee['employee_id'], '1', current_time]
+                        rows.append(row)
+                    
+                    else:
+                        row = [employee['name'], employee['employee_id'], '0', 'A']
+                        rows.append(row)
+                csvwriter.writerows(rows)
+                csvfile.close()
         else:
-            rb = open_workbook(file_path, formatting_info=True )
-            r_sheet = rb.sheet_by_index(0) # read only copy to introspect the file    
-            cols = r_sheet.ncols
-            wb = copy(rb) # a writable copy (I can't read values out of this, only write to it)
-            w_sheet = wb.get_sheet(0) # the sheet to write to within the writable copy
-            for row in range( r_sheet.nrows ):
-                if r_sheet.cell(0, (cols-1)).value != date_pattern:
-                    w_sheet.write(0, cols, date_pattern, style)
-                    for row_val in range(1, r_sheet.nrows):
-                        w_sheet.write(row_val, cols, 'A')
-                wb.save(file_path)
-                read_book = open_workbook(file_path, formatting_info = True)
-                sheet = read_book.sheet_by_index(0)
-                cols = sheet.ncols
-                condition1 = (sheet.cell(row, 0).value == name)
-                condition2 = (sheet.cell(row, cols-1).value == 'A')
-            
-                if condition1 and condition2 :
-                    current_time = datetime.datetime.now().strftime('%H:%M')
-                    wb = copy(read_book) 
-                    w_sheet = wb.get_sheet(0)
-                    w_sheet.write(row, cols-1, current_time)
-                    wb.save(file_path)
-    
-    return 
+            with open(file_path, 'r+') as csvfile:
+                
+                csvreader = csv.reader(csvfile)
+                first_row = next(csvreader, 0)
+                print(csvreader)
+                first_row_last_col = first_row[len(first_row) - 1]
+
+                if first_row_last_col != date_pattern:
+                    first_row.append(date_pattern)
+                    for row in csvreader:
+                        if name == row[0]:
+                            row.append(current_time)
+                        else:
+                            row.append('A')
+                    
+                else:
+                    for row in csvreader:
+                        names=row[0]
+                        attendance_val = row[len(row) - 1]
+                        if name == names and attendance_val == 'A':
+                            row[attendance_val] = current_time
+                csvfile.close()
+    return
+
+
+
 
 def add_register_employee_sheet(name, emp_id, request):
     dir_path = './media/documents/'+ str(request.user.username)
@@ -241,67 +244,83 @@ def add_register_employee_sheet(name, emp_id, request):
     file_name = ( str(request.user.username)
                 + str(todays_date.year)
                 + str(todays_date.month)
-                + '.xls'
+                + '.csv'
     )
     file_path = dir_path + '/' + file_name 
-    style = xlwt.easyxf('font: bold 1')  
-    date_pattern = ( str(todays_date.year) +'-'+ 
-                         str(todays_date.month) +'-'+ 
-                         str(todays_date.day)
-                        )
+    date_pattern = ( str( todays_date.year ) +'-'+ 
+                         str( todays_date.month ) +'-'+ 
+                         str( todays_date.day )
+                    )
     
     current_time = datetime.datetime.now().strftime('%H:%M')
-
+    column = ['name', 'id', 'total',  date_pattern]
+    employes = EmployeeInfo.objects.filter(
+            user = request.user
+        ).values('name', 'employee_id')
+        
     if not os.path.isfile(file_path):
         
-        workbook = Workbook()  # open a workbook
-        sheet1 = workbook.add_sheet('Sheet 1') 
-
-        # writing and style the  heading.
-        sheet1.write( 0, 0, 'Name', style ) 
-        sheet1.write( 0, 1, 'Employee Id', style ) 
-        sheet1.write( 0, 2, 'Total Presence', style )
-        sheet1.write( 0, 3, date_pattern, style )
-        # save the file.
-        all_users = EmployeeInfo.objects.filter( user = request.user ).values( 'name', 'employee_id' )
-        index = 1
-        while( index < len(all_users) ):
-            sheet1.write( index, 0, all_users[index]['name'] )
-            sheet1.write( index, 1, all_users[index]['employee_id'] )
-            if all_users[index]['name'] == name:
-                sheet1.write( index, 3, current_time)
-            else:
-                sheet1.write( index, 3, "A" )
-
-            index += 1
-        workbook.save(file_path)
+        with open(file_path, 'w', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(column)
+                rows = []
+                for employee in employes:
+                    
+                    if name == employee['name']:
+                        row = [employee['name'], employee['employee_id'], '1', current_time]
+                        rows.append(row)
+                    
+                    else:
+                        row = [employee['name'], employee['employee_id'], '0', 'A']
+                        rows.append(row)
+                csvwriter.writerows(rows)
+                csvfile.close()
     
     else:
-        rb = open_workbook(file_path, formatting_info=True )
-        r_sheet = rb.sheet_by_index(0) # read only copy to introspect the file    
-        cols = r_sheet.ncols
-        wb = copy(rb) # a writable copy (I can't read values out of this, only write to it)
-        w_sheet = wb.get_sheet(0) # the sheet to write to within the writable copy
-        row_no = r_sheet.nrows
-        last_column = (str(todays_date.year) + '-' 
-                    + str(todays_date.month) + '-'
-                    + str(todays_date.day)
-                )
+        new_arr = []
+        with open(file_path, 'r') as csvfile:
+            
+            
+            csvreader = csv.reader(csvfile)
 
-        '''
-            if we dont have today's date named column stored in the file.
-            so, we create a new column atfirst.
-        '''
-        if r_sheet.cell(0, (cols-1)).value != last_column:
-            w_sheet.write(0, cols, last_column, style)
-            w_sheet.write( row_no, cols, current_time)
-        else:
-            w_sheet.write( row_no, (cols-1), current_time)
+            # extracting field names through first row 
+            first_row = next(csvreader) 
+            
+            first_row_last_col = first_row[len(first_row) - 1]
+           
+            
+            if first_row_last_col != date_pattern:
+                first_row.append(date_pattern)
+                for col in first_row:
+                    if col == 'name':
+                        new_arr.append(name)
+                    elif col == 'id':
+                        new_arr.append(emp_id)
+                    elif col == 'total':
+                        new_arr.append('1')
+                    elif col == date_pattern:
+                        new_arr.append(current_time)
+                    else:
+                        new_arr.append('-')
+            else:
+                for col in  first_row:
+                    if col == 'name':
+                        new_arr.append(name)
+                    elif col == 'id':
+                        new_arr.append(emp_id)
+                    elif col == 'total':
+                        new_arr.append('1')
+                    elif col == date_pattern:
+                        new_arr.append(current_time)
+                    else:
+                        new_arr.append('-')
 
-        w_sheet.write( (row_no), 0, name)
-        w_sheet.write( (row_no), 1, emp_id)
-        wb.save(file_path)
-    
-    return True
-    
+                
+                csvfile.close()
         
+        with open(file_path, 'a+', newline='') as csvfile:
+            csv_write = csv.writer(csvfile)
+            csv_write.writerow(new_arr)
+            csvfile.close()
+
+    return
