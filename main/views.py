@@ -135,41 +135,33 @@ def get_attendance_data(request):
     file_name = ( str(request.user.username) 
                 + str(todays.year) 
                 + str(todays.month)
-                + '.xls'
+                + '.csv'
                 )
     
     # final file path
     file_path = path + '/' + file_name
     
     # read the  file
-    rd = open_workbook(file_path)
-    s_sheet = rd.sheet_by_index(0)
+    
 
     # content type of response
-    response = HttpResponse(content_type='applicatio/ms-excel')
+    response = HttpResponse(content_type='text/csv')
 
     # decide file name
-    response['Content-Disposition'] = 'attachment; filename="attendance.xls"'
-
+    response['Content-Disposition'] = 'attachment; filename="attendance.csv"'
     # creating workbook
-    wb = xlwt.Workbook(encoding='utf-8')
+    all_rows = []
+    with open(file_path, 'r') as csvfile:
+        csvread = csv.reader(csvfile)
+        for row in csvread:
 
-    # adding sheet
-    ws = wb.add_sheet('sheet1')
+            all_rows.append(row)
+        csvfile.close()
+    
+    writer = csv.writer(response)
+    writer.writerows(all_rows)
 
-    # header style
-    style = xlwt.easyxf('font: bold 1') 
 
-    # coping all data from one excel file to new file.
-    for row in  range(s_sheet.nrows):
-        for col in range(s_sheet.ncols):
-            value = s_sheet.cell(row, col).value
-            if row == 0:
-                ws.write( row, col, value, style)
-            
-            else:
-                ws.write( row, col, value)
-    wb.save(response)
     return response
 
 
