@@ -42,15 +42,15 @@
     const height = window.innerHeight;
     const width = window.innerWidth;
     video.height = height;
-    video.width = width; 
-    console.log(height, width); 
+    video.width = width;  
     const startStream = true;
     //let predictedAges = [];
 
     Promise.all([
         //faceapi.nets.mtcnn.loadFromUri("/static/models"),
         faceapi.nets.tinyFaceDetector.loadFromUri("/static/models"),
-        faceapi.nets.faceRecognitionNet.loadFromUri("/static/models")
+        faceapi.nets.faceRecognitionNet.loadFromUri("/static/models"),
+        
         //faceapi.nets.faceLandmark68Net.loadFromUri("/static/models"),
         //faceapi.nets.faceExpressionNet.loadFromUri("/static/models"),
         //faceapi.nets.ageGenderNet.loadFromUri("/static/models")
@@ -118,8 +118,9 @@
             const byte_image = captureSnapshot()
             const dataURI	= snapshot.firstChild.getAttribute( "src" );
             const blob_image = dataURItoBlob(dataURI);
+            // face detection and face landmark 
             faceapi.draw.drawDetections(canvas, resizedDetections);
-        
+            
             var form = new FormData();
             form.append("images", blob_image);
             let xml = new XMLHttpRequest();
@@ -130,7 +131,12 @@
                 localStorage.setItem('names', JSON.stringify(data));
               }
             }
-            xml.send( form );
+            if( resizedDetections.length !== 0 ){
+              xml.send( form );
+            }
+            else{
+              deleteName()
+            }
             //faceapi.draw.value('samiran');
             let data_name= '';
             if(localStorage.getItem('names') !== undefined){
@@ -230,7 +236,9 @@
       return new Promise(r => setTimeout(r, ms));
     } {% endcomment %}
 
-
+  function deleteName() {
+  localStorage.removeItem("names");
+}
 </script>
 </body>
 </html>

@@ -27,7 +27,6 @@ def logins(request):
         user = authenticate(request, username=username, password=password)
         if user:
             # if all data that is username and password is matched so login the user.
-            print(user)
             login(request, user)
             # some one  tried to go dashbord page without login so redirect to login page
             if request.GET.get('next', None):
@@ -116,12 +115,12 @@ def secoend_time(request):
     else:
         return HttpResponseRedirect(reverse('index_page'))
 
-
+# DEMO@#123
 @csrf_exempt
 def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
-        names=['samiran']
+        names=['akash', 'samiran']
         do_attendance2(names, request)
 
         
@@ -177,7 +176,7 @@ def do_attendance2(names, request):
         file_path = path + '/' + file_name
         date_pattern = ( str(todays.year) +'-'+ 
                          str(todays.month) +'-'+ 
-                         str(todays.day)
+                         str( int(todays.day) + 1)
                         )
         column = ['name', 'id', 'total',  date_pattern]
         employes = EmployeeInfo.objects.filter(
@@ -189,8 +188,8 @@ def do_attendance2(names, request):
         if not os.path.isfile(file_path):
             with open(file_path, 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow(column)
-                rows = []
+                
+                rows = ['',['name', 'id', 'total',  date_pattern]]
                 for employee in employes:
                     
                     if name == employee['name']:
@@ -206,25 +205,40 @@ def do_attendance2(names, request):
             with open(file_path, 'r+') as csvfile:
                 
                 csvreader = csv.reader(csvfile)
-                first_row = next(csvreader, 0)
-                print(csvreader)
+                
+                lists = list(csvreader)
+                first_row = lists[1]
                 first_row_last_col = first_row[len(first_row) - 1]
 
                 if first_row_last_col != date_pattern:
                     first_row.append(date_pattern)
-                    for row in csvreader:
-                        if name == row[0]:
-                            row.append(current_time)
+                    for index in range(2, len(lists)):
+                        length = len(lists[index])
+                        if lists[index][0] == name:
+                            lists[index].append(current_time)
+                            total_attendance = int(lists[index][2]) + 1
+                            lists[index][2] = total_attendance
+
                         else:
-                            row.append('A')
-                    
+                            lists[index].append('A')
+                    csvfile.close()
+                    write_file = open(file_path, 'w', newline='')
+                    csv_writer = csv.writer(write_file)
+                    csv_writer.writerows(lists)
+                    write_file.close()
+
                 else:
-                    for row in csvreader:
-                        names=row[0]
-                        attendance_val = row[len(row) - 1]
-                        if name == names and attendance_val == 'A':
-                            row[attendance_val] = current_time
-                csvfile.close()
+                    for index in range(2, len(lists)):
+                        length = len(lists[index])
+                        if lists[index][0] == name and lists[index][length-1] == 'A':
+                            lists[index][length-1] = current_time
+                            break
+
+                    csvfile.close()
+                    write_file = open(file_path, 'w', newline='')
+                    csv_writer = csv.writer(write_file)
+                    csv_writer.writerows(lists)
+                    write_file.close()
     return
 
 
@@ -241,7 +255,7 @@ def add_register_employee_sheet(name, emp_id, request):
     file_path = dir_path + '/' + file_name 
     date_pattern = ( str( todays_date.year ) +'-'+ 
                          str( todays_date.month ) +'-'+ 
-                         str( todays_date.day )
+                         str( int(todays_date.day)+ 3 )
                     )
     
     current_time = datetime.datetime.now().strftime('%H:%M')
@@ -254,8 +268,8 @@ def add_register_employee_sheet(name, emp_id, request):
         
         with open(file_path, 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow(column)
-                rows = []
+                
+                rows = ['',['name', 'id', 'total',  date_pattern]]
                 for employee in employes:
                     
                     if name == employee['name']:
@@ -269,50 +283,65 @@ def add_register_employee_sheet(name, emp_id, request):
                 csvfile.close()
     
     else:
-        new_arr = []
-        with open(file_path, 'r') as csvfile:
-            
-            
-            csvreader = csv.reader(csvfile)
-
-            # extracting field names through first row 
-            first_row = next(csvreader) 
-            
-            first_row_last_col = first_row[len(first_row) - 1]
-           
-            
-            if first_row_last_col != date_pattern:
-                first_row.append(date_pattern)
-                for col in first_row:
-                    if col == 'name':
-                        new_arr.append(name)
-                    elif col == 'id':
-                        new_arr.append(emp_id)
-                    elif col == 'total':
-                        new_arr.append('1')
-                    elif col == date_pattern:
-                        new_arr.append(current_time)
-                    else:
-                        new_arr.append('-')
-            else:
-                for col in  first_row:
-                    if col == 'name':
-                        new_arr.append(name)
-                    elif col == 'id':
-                        new_arr.append(emp_id)
-                    elif col == 'total':
-                        new_arr.append('1')
-                    elif col == date_pattern:
-                        new_arr.append(current_time)
-                    else:
-                        new_arr.append('-')
-
+        with open(file_path, 'r+') as csvfile:
+                print('I have file')
+                csvreader = csv.reader(csvfile)
                 
-                csvfile.close()
-        
-        with open(file_path, 'a+', newline='') as csvfile:
-            csv_write = csv.writer(csvfile)
-            csv_write.writerow(new_arr)
-            csvfile.close()
+                lists = list(csvreader)
+                first_row = lists[1]
+                first_row_last_col = first_row[len(first_row) - 1]
 
+                if first_row_last_col != date_pattern:
+                    print('i do not have todays date')
+                    first_row.append(date_pattern)
+                    for index in range(2, len(lists)):
+                        # length = len(lists[index])
+                        # if lists[index][0] == name:
+                        #     lists[index].append(current_time)
+                        #     total_attendance = int(lists[index][2]) + 1
+                        #     lists[index][2] = total_attendance
+
+                        # else:
+                        lists[index].append('A')
+
+                    csvfile.close()
+                    instance = []
+                    for val in first_row:
+                        print(val)
+                        if val == 'name':
+                            instance.append(name)
+                        elif val == 'id':
+                            instance.append(emp_id)
+                        elif val == 'total':
+                            instance.append(1)
+                        elif val == date_pattern:
+                            instance.append(current_time)
+                        else:
+                            instance.append('-')
+                    print(instance)
+                    lists.append(instance)
+                    write_file = open(file_path, 'w', newline='')
+                    csv_writer = csv.writer(write_file)
+                    csv_writer.writerows(lists)
+                    write_file.close()
+
+                else:
+                    instance =[]
+                    for val in first_row:
+                        if val == 'name':
+                            instance.append(name)
+                        elif val == 'id':
+                            instance.append(emp_id)
+                        elif val == 'total':
+                            instance.append(1)
+                        elif val == date_pattern:
+                            instance.append(current_time)
+                        else:
+                            instance.append('-')
+                    lists.append(instance)
+                    csvfile.close()
+                    write_file = open(file_path, 'w', newline='')
+                    csv_writer = csv.writer(write_file)
+                    csv_writer.writerows(lists)
+                    write_file.close()
     return

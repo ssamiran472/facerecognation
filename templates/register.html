@@ -136,7 +136,9 @@ var timer;
 // Attach listeners
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri("/static/models"),
-    faceapi.nets.faceRecognitionNet.loadFromUri("/static/models")
+    faceapi.nets.faceRecognitionNet.loadFromUri("/static/models"),
+    faceapi.nets.faceLandmark68Net.loadFromUri('/static/models')
+
 ]).then(startVideo);
 
 const constraints = { audio: false, video: { width: widths, height: heights } }; 
@@ -165,11 +167,12 @@ video.addEventListener("playing", () => {
   const displaySize = { width: video.width, height: video.height }
   faceapi.matchDimensions(canvas, displaySize)
   timer = setInterval(async () => {
-    console.log('calling');
-    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+    //console.log('calling');
+    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks()
     const resizedDetections = faceapi.resizeResults(detections, displaySize)
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     faceapi.draw.drawDetections(canvas, resizedDetections)
+    faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
     
   }, 200)
 
