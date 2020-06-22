@@ -129,7 +129,7 @@ def recognizing_image(request):
 def get_attendance_data(request):
     
     # path of the file
-    path = './media/documents/'+ str(request.user.username)
+    path = '/var/www/djangomac/facerecognation/media/documents/'+ str(request.user.username)
     todays = date.today()
     file_name = ( str(request.user.username) 
                 + str(todays.year) 
@@ -166,7 +166,7 @@ def get_attendance_data(request):
 
 def do_attendance2(names, request):
     for name in names:
-        path = './media/documents/' + str(request.user.username)
+        path = '/var/www/djangomac/facerecognation/media/documents/' + str(request.user.username)
         todays = date.today()
         file_name = ( str(request.user.username) 
                     + str(todays.year) 
@@ -245,7 +245,7 @@ def do_attendance2(names, request):
 
 
 def add_register_employee_sheet(name, emp_id, request):
-    dir_path = './media/documents/'+ str(request.user.username)
+    dir_path = '/var/www/djangomac/facerecognation/media/documents/'+ str(request.user.username)
     todays_date = date.today()
     file_name = ( str(request.user.username)
                 + str(todays_date.year)
@@ -318,7 +318,7 @@ def add_register_employee_sheet(name, emp_id, request):
                             instance.append(current_time)
                         else:
                             instance.append('-')
-                    print(instance)
+                    
                     lists.append(instance)
                     write_file = open(file_path, 'w', newline='')
                     csv_writer = csv.writer(write_file)
