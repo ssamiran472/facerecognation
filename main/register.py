@@ -160,7 +160,7 @@ def update_faces(path):
 
 
 # Create a new svc model and fit updated data to learn new weights
-def classifier(path, acc=False, user):
+def classifier(path, user, acc=False):
     # Load faces
     data = load(path+'/Data/employees/dataset.npz')
     testX_faces = data['arr_2']
