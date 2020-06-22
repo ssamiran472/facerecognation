@@ -9,7 +9,8 @@ compressed datasets of an organistion'''
 import os, shutil, pickle, numpy as np
 from PIL import Image
 from numpy import asarray
-from mtcnn.mtcnn import MTCNN
+import mtcnn
+from mtcnn import MTCNN
 from cv2 import cv2
 from matplotlib import pyplot
 from os.path import isdir
