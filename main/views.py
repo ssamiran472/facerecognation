@@ -250,9 +250,7 @@ def do_attendance2(names, request):
                     csv_writer.writerows(lists)
                     write_file.close()
     return
-
-
-
+    
 
 def add_register_employee_sheet(name, emp_id, request):
     dir_path = '/var/www/djangomac/facerecognation/media/documents/'+ str(request.user.username)
