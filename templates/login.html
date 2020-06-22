@@ -51,6 +51,21 @@ body {
 #from {
     overflow: scroll;
 }
+
+#copyright{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    margin-bottom: 0;
+    font-size: 14px;
+}
+
+#contact{
+    position: fixed;
+    bottom: 2vh;
+    left: 50%;
+    transform: translateX(-50%);
+}
 input {
     width: 100%;
     margin-bottom: 10px;
@@ -86,7 +101,12 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 
 
     </form> <p class="text-light">{{ error }}</p>
+    <div id='contact' class='text-light text-center'>
+        To register contact: +91 8095575509 | facedigital.co@gmail.com
+    </div>
 </div>
+
+<p id='copyright' class='text-light'>Copyright ©️ 2020 | Krishna Prasad Sidheeshwaran</p>
 
 
 

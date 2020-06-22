@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     {% load static %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to FaceRec</title>
+    <title>Face Digital</title>
     <!-- my css file -->
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
     <!-- boostrap4 link -->
@@ -28,7 +28,7 @@
 
         <div id='form' class='text-center p-3' style='display: none'>
             <button class='btn btn-active' id='disapper'>&#10006;</button>
-            <h2 class='h3'>Verify Authorization</h2>
+            <h2 class='h3 text-light'>Verify Authorization</h2>
             <form method='post' class='text-center' action='{% url "extra_checking" %}'>
                 {% csrf_token %}
                 <input type='password' name='password' id='password' placeholder='enter your password' required>
@@ -46,13 +46,21 @@
         </div>
     <div class='text-center mt-3'>
         <h1 class='h2 text-light'>Welcome {{request.user.username}}</h1>
-        <h1 class='text-light h2'>FaceRec</h1>
+        <h1 class='text-light h2'>Face Digital</h1>
         <p id='ptag' class='text-light text-center display1'>An AI based Automated Attendance System</p>
         <hr>
     </div>
         <!--Primary Container for mobile views -->
         <div  class="container-fluid">
             <!--Secondary Container for registration redirection-->
+            <div>
+                <p class='text-justify text-light'>
+                    In a technologically powerful world like ours, a viral infection like COVID19 had us all panicked and assigned to homes. Though the lockdown state-wide and country-wide is shutting out rapidly, there is a very good need to stay secure, hygienic and cautious of the overall surroundings at all times until the foreseeable future. Workplaces being the second home to any adult, it is time to upgrade both our habits and  procedural systems.
+                </p>
+                <p class='text-justify text-light'>
+                    Fingerprint reader being the most widely used biometric system of the decade, it is also a point of contact between users and hence also a point of contact for viruses like SARS-CoV2. There arises a need to replace fingerprint based biometric authentication and attendance systems with face recognition based systems. Implementation of the same is now made easier keeping accuracy intact. Welcome to Face Digital, a face recognition based attendance system for the new world where we learn to survive alongside covid.
+                </p>
+            </div>
             <div class='row'>
                 <div class="col-sm-4 text-center"><br>
                     <a href="{% url 'register' %}">
@@ -93,7 +101,7 @@
                 </div>
                 <!--Secondary Container for analytics dashboard redirection-->
                 <div class=" col-sm-4 text-center"><br>
-                    <a href="#">
+                    <a href="{% url 'export_attendance_xls' %}">
                         <img id='ana' class='rounded' style="height: 200px; width:200px;" src="{% static 'analysis.jpg' %}"><br>
                         <p class='text-light' id="Anas">View Attendance Insights</p>
                     </a>
@@ -102,12 +110,15 @@
         </div>
         <div id='info'>
             <!-- for some instraction and some information to show large device -->
-            <p>
-
-                
+            <p class='text-justify text-light'>
+                In a technologically powerful world like ours, a viral infection like COVID19 had us all panicked and assigned to homes. Though the lockdown state-wide and country-wide is shutting out rapidly, there is a very good need to stay secure, hygienic and cautious of the overall surroundings at all times until the foreseeable future. Workplaces being the second home to any adult, it is time to upgrade both our habits and  procedural systems.
+            </p>
+            <p class='text-justify text-light'>
+                Fingerprint reader being the most widely used biometric system of the decade, it is also a point of contact between users and hence also a point of contact for viruses like SARS-CoV2. There arises a need to replace fingerprint based biometric authentication and attendance systems with face recognition based systems. Implementation of the same is now made easier keeping accuracy intact. Welcome to Face Digital, a face recognition based attendance system for the new world where we learn to survive alongside covid.
             </p>
         </div>
     </div>
+    <p id='copyright' class='text-light display-6'>Copyright ©️ 2020 | Krishna Prasad Sidheeshwaran</p>
 <script>
     function sideBar_open() {
     document.getElementById("mySidebar").style.width = "25%";

@@ -16,6 +16,11 @@ from os.path import isdir
 from numpy import savez_compressed
 from numpy import load
 from numpy import expand_dims
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import Normalizer
+from sklearn.svm import SVC
+# from random import choice
+
 
 # Define a function to pre-process images and paths as required
 def sort(folder, train, test):
@@ -33,6 +38,7 @@ def sort(folder, train, test):
             shutil.move(folder+m, train+m)
         else:
             shutil.move(folder+m, test+m)
+    os.rmdir(folder)
     return 'Data ready for input'
 
 # extract a single face from a given photograph
@@ -77,13 +83,11 @@ def load_faces(directory):
 def load_dataset(directory, name):
     X, y = list(), list()
     # path
-    path = directory # + subdir + '/'
+    path = directory 
     # load all faces in the subdirectory
     faces = load_faces(path)
     # create labels
     labels = [name for _ in range(len(faces))]
-    # summarize progress
-    # print('>loaded %d examples for class: %s' % (len(faces), name))
     # store
     X.extend(faces)
     y.extend(labels)
@@ -104,6 +108,7 @@ def update_data(path, train, test, name):
     texn = np.concatenate((teXo, testX), axis=0)
     teyn = np.concatenate((teyo, testy), axis=0)
     # Upadte data arrays to one file in compressed format
+    savez_compressed(path+'/Data/employees/temp.npz', trainX, trainy, testX, testy)
     savez_compressed(path+'/Data/employees/dataset.npz', trxn, tryn, texn, teyn)
     return "Dataset successfully updated"
 
@@ -120,10 +125,10 @@ def update_faces(path):
         yhat = model.predict(samples)
         return yhat[0]
 
-    data = load(path+'/Data/employees/dataset.npz')
+    data = load(path+'/Data/employees/temp.npz')
     trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
     # load the facenet model
-    facenet = '../models/embedder/facenet.pkl'
+    facenet = 'models/embedder/facenet.pkl'
     infile = open(facenet, 'rb')
     model = pickle.load(infile)
     infile.close()
@@ -150,37 +155,89 @@ def update_faces(path):
     teyn = np.concatenate((teyo, testy), axis=0)
     # save arrays to one file in compressed format
     savez_compressed(path+'/Data/employees/embeddings.npz', trxn, tryn, texn, teyn)
-
+    os.remove(path+'/Data/employees/temp.npz')
     return "Vectors updated successfully"
 
+
+# Create a new svc model and fit updated data to learn new weights
+def classifier(path, acc=False):
+    # Load faces
+    data = load(path+'/Data/employees/dataset.npz')
+    testX_faces = data['arr_2']
+    # Load embeddings
+    data = load(path+'/Data/employees/embeddings.npz')
+    trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+    # Normalize input vectors
+    in_encoder = Normalizer(norm='l2')
+    trainX = in_encoder.transform(trainX)
+    testX = in_encoder.transform(testX)
+    # Label encode targets
+    out_encoder = LabelEncoder()
+    out_encoder.fit(trainy)
+    trainy = out_encoder.transform(trainy)
+    testy = out_encoder.transform(testy)
+    # Fit model
+    svc = SVC(kernel='linear', probability=True)
+    svc.fit(trainX, trainy)
+    # Serialize the SVC model and label encoded classes for verification.py
+    from joblib import dump
+    m = "models/classifier/classifier.joblib"
+    with open(m, 'wb') as file:
+        joblib.dump(svc, file)
+    numpy.save('models/encoder/classes.npy', out_encoder.classes_)
+    # ****************For accuracy issues and debugging only****************
+    # if acc == True:
+    #     from sklearn.metrics import accuracy_score as ac
+    #     preds = svc.predict(testX)
+    #     ___ = ac(testy, preds)*100
+    #     score = round((___, 2)
+    #     return score
+    # else:
+    return("Model Updated Successfully")
+
+# Register function called directly from the frontend register button
 def register(org_id, employee_name):
     # Define absolute path
-    path = "../media/documents/"+str(org_id)
-    # Create train/test directories for new registrants
-    os.mkdir(path+'/Data/train/'+employee_name)
-    os.mkdir(path+'/Data/test/'+employee_name)
-    print("User already registered, same name exists in data base")
-    # Define static image and new train/test folder paths for registrant
-    folder = path+"/static/"+str(employee_name)+"/"
-    train = path+"/Data/train/"+employee_name+'/'
-    test = path+"/Data/test/"+employee_name+'/'
-    # Call the pre-defined function to prep-images for input
-    se = sort(folder, train, test)
-    # Update the dataset for new employees data
-    ude = update_data(path, train, test, employee_name)
-    # Update 128-D Face Vectors
-    ufe = update_faces(path)
-    # Check for errors
-    if se == 'Data ready for input':
-        o = True
-    if ude == "Dataset successfully updated":
-        t = True
-    if ufe == "Vectors updated successfully":
-        th = True
-    if o & t & th == True:
-        return "Registration Successful"
-    else:
-        return "Registration Failed with error(#111 err-content mistmatch), contact admin to register manually"
-
+    path = "media/documents/"+str(org_id)
+    # Check for parallel processing
+    try:
+        from .dummy import dummy
+        # Change the dummy function
+        os.rename('main/dummy.py', 'main/wait.py')
+        # Create train/test directories for new registrants
+        os.mkdir(path+'/Data/train/'+employee_name)
+        os.mkdir(path+'/Data/test/'+employee_name)
+        # print("User already registered, same name exists in data base")
+        # Define static image and new train/test folder paths for registrant
+        folder = path+"/static/"+str(employee_name)+"/"
+        train = path+"/Data/train/"+employee_name+'/'
+        test = path+"/Data/test/"+employee_name+'/'
+        # Call the pre-defined function to prep-images for input
+        se = sort(folder, train, test)
+        # Update the dataset for new employees data
+        ude = update_data(path, train, test, name=employee_name)
+        # Update 128-D Face Vectors
+        ufe = update_faces(path)
+        # Update the classifier model
+        ucm = classifier(path)
+        # Revert the dummy function
+        os.rename('main/wait.py', 'main/dummy.py')
+        # Check for errors
+        if se == 'Data ready for input':
+            o = True
+        if ude == "Dataset successfully updated":
+            t = True
+        if ufe == "Vectors updated successfully":
+            th = True
+        if ucm == "Model Updated Successfully":
+            um = True
+        if o & t & th & um == True:
+            return "Registration Successful"
+        else:
+            return "Registration Failed"
+    except ImportError:
+        return "Server currently busy"
+        pass
+        
 if __name__ == "__main__":
     register()

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="{% static 'css/register.css' %}">
-    <title>Registration</title>
+    <title>Register</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -26,7 +26,7 @@
 <div id='alrt'></div>
 <h3 id="back"><a href="/"><button class='btn btn-active bg-success text-light'>Go back</button></a></h3>
 <div class='header text-center' id='heading_element'>
-    <h1 class='h1 text-light'>welcome {{request.user.username}}</h1>
+    <h1 class='h1 text-light'>Welcome {{request.user.username}}</h1>
     <h1 class='h1 text-light'>Register</h1>
     <p class='h6 text-light'>Please fill in this form to register for attendance</p>
     <hr>
@@ -94,7 +94,7 @@
   <div id="lock-modal"></div>
   <div id="loading-circle"></div>
 </div>
-
+<p id='copyright' class='text-light'>Copyright ©️ 2020 | Krishna Prasad Sidheeshwaran</p>
 <script>
 
 // The buttons to start & stop stream and to capture the image
