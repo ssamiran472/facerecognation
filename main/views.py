@@ -10,8 +10,8 @@ import csv
 
 from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
-from .register import register
-from .recognize import recognize as recognizing
+#from .register import register
+#from .recognize import recognize as recognizing
 
 @login_required(login_url="/login/")
 def index(request):
@@ -75,7 +75,7 @@ def registering(request):
                 image = Images(name_of_employee=information, images = files)
                 image.save()
                 term_no += 1
-            status = register(request.user.username, name)
+           # status = register(request.user.username, name)
             add_register_employee_sheet(name, ids, request)
         return JsonResponse({'success': 'file uploaded successful'}, safe=False)
 
@@ -120,8 +120,8 @@ def secoend_time(request):
 def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
-        names=recognizing( request.user.username, files )
-        
+        #names=recognizing( request.user.username, files )
+        names = ["Unknown"]
         do_attendance2(names, request)
         length = len(names)
         reverse_names = []
