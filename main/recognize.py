@@ -17,21 +17,22 @@ import pickle, joblib, numpy, warnings
 warnings.filterwarnings('ignore')
 
 # Load all required model instances to current session
-# Load Facenet embedder
-facenet = 'models/embedder/facenet.pkl'
-infile = open(facenet, 'rb')
-embedder = pickle.load(infile)
-infile.close()
-# Load serialized SVC model
-filename = "models/classifier/classifier.joblib"
-with open(filename, 'rb') as m:
-    svc = joblib.load(m)
-# Normalize input face vectors
-in_encoder = Normalizer(norm='l2')
-# Load label encoder classes
-out_encoder = LabelEncoder()
-out_encoder.classes_ = numpy.load('models/encoder/classes.npy')
-
+def models(user):
+    # Load Facenet embedder
+    facenet = 'models/embedder/facenet.pkl'
+    infile = open(facenet, 'rb')
+    embedder = pickle.load(infile)
+    infile.close()
+    # Load serialized SVC model
+    filename = "media/documents/"+user+"/classifier/classifier.joblib"
+    with open(filename, 'rb') as m:
+        svc = joblib.load(m)
+    # Normalize input face vectors
+    in_encoder = Normalizer(norm='l2')
+    # Load label encoder classes
+    out_encoder = LabelEncoder()
+    out_encoder.classes_ = numpy.load('media/documents/'+user+'/encoder/classes.npy')
+    return embedder, svc, in_encoder, out_encoder
 # Define a function to extract_faces using the loaded model
 def extract_face(frame, required_size=(160, 160)):
     detector = MTCNN()
@@ -87,7 +88,11 @@ def embedded(frame):
         confs.append(conf_[0][pred[0]])
     return labels, confs
 
-def recognize(frame, alpha):
+def recognize(user, frame, alpha=60):
+    try:
+        embedder=embedder
+    except NameError:
+        embedder, svc, in_encoder, out_encoder = models(user)
     output=[]
     name, score = embedded(frame)
     for i, n in enumerate(name):

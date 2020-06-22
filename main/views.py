@@ -11,7 +11,7 @@ import csv
 from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
 from .register import register
-from .recognize import recognize
+from .recognize import recognize as recognizing
 
 @login_required(login_url="/login/")
 def index(request):
@@ -116,17 +116,20 @@ def secoend_time(request):
     else:
         return HttpResponseRedirect(reverse('index_page'))
 
-# DEMO@#123
 @csrf_exempt
 def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
-        names=recognize(request.user.username, files)
+        names=recognizing( request.user.username, files )
         
         do_attendance2(names, request)
-
+        length = len(names)
+        reverse_names = []
+        for index in  range(length, 0, -1):
+            name = names[index]
+            reverse_names.append(name)
         
-        return JsonResponse(names, safe=False)
+        return JsonResponse(reverse_names, safe=False)
 
 def get_attendance_data(request):
     

@@ -160,7 +160,7 @@ def update_faces(path):
 
 
 # Create a new svc model and fit updated data to learn new weights
-def classifier(path, acc=False):
+def classifier(path, acc=False, user):
     # Load faces
     data = load(path+'/Data/employees/dataset.npz')
     testX_faces = data['arr_2']
@@ -181,10 +181,10 @@ def classifier(path, acc=False):
     svc.fit(trainX, trainy)
     # Serialize the SVC model and label encoded classes for verification.py
     from joblib import dump
-    m = "models/classifier/classifier.joblib"
+    m = "media/documents/"+user+"/classifier/classifier.joblib"
     with open(m, 'wb') as file:
         joblib.dump(svc, file)
-    numpy.save('models/encoder/classes.npy', out_encoder.classes_)
+    numpy.save('media/documents/'+user+'/encoder/classes.npy', out_encoder.classes_)
     # ****************For accuracy issues and debugging only****************
     # if acc == True:
     #     from sklearn.metrics import accuracy_score as ac
@@ -219,7 +219,7 @@ def register(org_id, employee_name):
         # Update 128-D Face Vectors
         ufe = update_faces(path)
         # Update the classifier model
-        ucm = classifier(path)
+        ucm = classifier(path, user=org_id)
         # Revert the dummy function
         os.rename('main/wait.py', 'main/dummy.py')
         # Check for errors
