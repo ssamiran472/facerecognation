@@ -1,5 +1,5 @@
 body{
-    background-image: url('../bg3.jpg');
+    background-image: url('../background.jpg');
     background-repeat: no-repeat;
     /* background-size: cover; */
     /* background-color: #4CAF50;*/
@@ -93,6 +93,14 @@ body{
     border-top: 4px solid #3498db;
     border-radius: 50%;
     animation: spin 0.6s ease-in infinite;
+}
+
+#copyright{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    margin-bottom: 0;
+    font-size: 14px;
 }
 
 @keyframes spin {

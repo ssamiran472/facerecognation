@@ -1,5 +1,5 @@
 body{
-    background-image: url('../bg3.jpg');
+    background-image: url('../background.jpg');
     background-repeat: no-repeat;
     /* background-size: cover; */
     /* background-color: #4CAF50;*/
@@ -37,7 +37,7 @@ html{
         top:0;
         left: 0;
         bottom:0;
-        background-image: url('../bg4.jpg');
+        background-image: url('../background.jpg');
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -107,13 +107,30 @@ html{
     display: none;
 }
 
+#copyright{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    margin-bottom: 0;
+    font-size: 14px;
+    
+}
+@media (max-width: 600px){
+    body{
+        background-size: cover;
+    }
+}
 @media (min-width: 601px){
     #info{
         display: block;
+        margin-left: 17rem;
     }
     #form{
         position: absolute;
         background-color: aqua;
+        background-image: url('../background.jpg');
+        background-repeat: no-repeat;
+        background-size: cover;
         top: 0;
         bottom: 0;
         left: 40%;
