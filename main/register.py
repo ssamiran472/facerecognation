@@ -129,7 +129,7 @@ def update_faces(path):
     data = load(path+'/Data/employees/temp.npz')
     trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
     # load the facenet model
-    facenet = 'models/embedder/facenet.pkl'
+    facenet = '/var/www/djangomac/facerecognation/models/embedder/facenet.pkl'
     infile = open(facenet, 'rb')
     model = pickle.load(infile)
     infile.close()
@@ -182,10 +182,10 @@ def classifier(path, user, acc=False):
     svc.fit(trainX, trainy)
     # Serialize the SVC model and label encoded classes for verification.py
     from joblib import dump
-    m = "media/documents/"+user+"/classifier/classifier.joblib"
+    m = "/var/www/djangomac/facerecognation/media/documents/"+user+"/classifier/classifier.joblib"
     with open(m, 'wb') as file:
         joblib.dump(svc, file)
-    numpy.save('media/documents/'+user+'/encoder/classes.npy', out_encoder.classes_)
+    numpy.save('/var/www/djangomac/facerecognation/media/documents/'+user+'/encoder/classes.npy', out_encoder.classes_)
     # ****************For accuracy issues and debugging only****************
     # if acc == True:
     #     from sklearn.metrics import accuracy_score as ac
@@ -199,7 +199,7 @@ def classifier(path, user, acc=False):
 # Register function called directly from the frontend register button
 def register(org_id, employee_name):
     # Define absolute path
-    path = "media/documents/"+str(org_id)
+    path = "/var/www/djangomac/facerecognation/media/documents/"+str(org_id)
     # Check for parallel processing
     try:
         from .dummy import dummy
