@@ -126,7 +126,7 @@ def recognizing_image(request):
         files = request.FILES['images']
 
         names = recognizing( request.user.username, files )
-        #names = ["unknown"]
+        # names = ["unknown"]
         do_attendance2(names, request)
         length = len(names)
         reverse_names = []

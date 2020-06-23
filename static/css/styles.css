@@ -1,0 +1,51 @@
+
+body {
+  /* margin: 0;
+  padding: 0; */
+  background-color: brown;
+  /* box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center; */
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  
+}
+video{
+  height: auto;
+  max-width: 100%;
+  
+}
+#capture{
+  display: none;
+}
+#video{
+  height: auto;
+  max-width: 100%;
+}
+canvas {
+  position: absolute;
+}
+#nav{
+  position: absolute;
+  top: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 100;
+}
+#backButton{
+  position: absolute;
+  left: 0;
+}
+
+@media (min-width: 601px){
+  #sdevice{
+    display: none;
+  }
+}
