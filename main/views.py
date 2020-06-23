@@ -11,8 +11,8 @@ import csv
 from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
 
-from .register import register
-from .recognize import recognize as recognizing
+# from .register import register
+# from .recognize import recognize as recognizing
 
 
 @login_required(login_url="/login/")
@@ -78,7 +78,7 @@ def registering(request):
                 image.save()
                 term_no += 1
 
-            status = register(request.user.username, name)
+            # status = register(request.user.username, name)
 
             add_register_employee_sheet(name, ids, request)
         return JsonResponse({'success': 'file uploaded successful'}, safe=False)
@@ -125,8 +125,8 @@ def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
 
-        names = recognizing( request.user.username, files )
-        #names = ["unknown"]
+        # names = recognizing( request.user.username, files )
+        names = ["unknown"]
         do_attendance2(names, request)
         length = len(names)
         reverse_names = []
