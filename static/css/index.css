@@ -123,7 +123,9 @@ html{
 @media (min-width: 601px){
     #info{
         display: block;
-        margin-left: 17rem;
+        margin-left: 23vw;
+        margin-right: 2vw;
+        font-size: 1.2rem;
     }
     #form{
         position: absolute;
