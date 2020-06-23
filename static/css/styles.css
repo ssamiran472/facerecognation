@@ -42,3 +42,10 @@ canvas {
 #backButton{
   position: absolute;
   left: 0;
+}
+
+@media (min-width: 601px){
+  #sdevice{
+    display: none;
+  }
+}
