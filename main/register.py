@@ -6,7 +6,9 @@ Also this function automatically updates any existing face embeddings and
 compressed datasets of an organistion'''
 
 # Importing all required functions
-import os, shutil, pickle, numpy as np
+import os, shutil, pickle, tensorflow, numpy as np
+import numpy
+from tensorflow.keras.models import load_model as lm
 from PIL import Image
 from numpy import asarray
 import mtcnn
@@ -129,11 +131,12 @@ def update_faces(path):
     data = load(path+'/Data/employees/temp.npz')
     trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
     # load the facenet model
-    facenet = '/var/www/djangomac/facerecognation/models/embedder/facenet.pkl'
-    infile = open(facenet, 'rb')
-    model = pickle.load(infile)
-    infile.close()
+    # facenet = '/var/www/djangomac/facerecognation/models/embedder/facenet.pkl'
+    # infile = open(facenet, 'rb')
+    # model = pickle.load(infile)
+    # infile.close()
     # convert each face in the train set to an embedding
+    model = lm('/var/www/djangomac/facerecognation/models/embedder/facenet.h5')
     newTrainX = list()
     for face_pixels in trainX:
         embedding = get_embedding(model, face_pixels)
@@ -184,7 +187,7 @@ def classifier(path, user, acc=False):
     from joblib import dump
     m = "/var/www/djangomac/facerecognation/media/documents/"+user+"/classifier/classifier.joblib"
     with open(m, 'wb') as file:
-        joblib.dump(svc, file)
+        dump(svc, file)
     numpy.save('/var/www/djangomac/facerecognation/media/documents/'+user+'/encoder/classes.npy', out_encoder.classes_)
     # ****************For accuracy issues and debugging only****************
     # if acc == True:
