@@ -25,7 +25,7 @@ SECRET_KEY = 'r$yhtc#-tc-4kvraqy3w=fzq5(p*^@b@xs%btaxnep6w$zk!h@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'decodepro.in', '167.172.153.126', 'www.decodepro.in']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'decodepro.in', '64.227.10.159', 'facedigital.co.in', 'www.decodepro.in']
 
 
 # Application definition
