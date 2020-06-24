@@ -12,33 +12,36 @@ from numpy import expand_dims
 from mtcnn.mtcnn import MTCNN
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import Normalizer
+import tensorflow
+from tensorflow.keras.models import load_model as lm
 import pickle, joblib, numpy, warnings
 # Ignore any unnecessary warnings
 warnings.filterwarnings('ignore')
 
 # Load all required model instances to current session
 def models(user):
-    
     # Load Facenet embedder
-    facenet = 'models/embedder/facenet.pkl'
-    infile = open(facenet, 'rb')
-    embedder = pickle.load(infile)
-    infile.close()
+    # facenet = 'models/embedder/facenet.pkl'
+    # infile = open(facenet, 'rb')
+    # embedder = pickle.load(infile)
+    # infile.close()
+    embedder=lm('./models/embedder/facenet.h5')
     # Load serialized SVC model
-    filename = "media/documents/"+user+"/classifier/classifier.joblib"
+    filename = "./media/documents/"+user+"/classifier/classifier.joblib"
     with open(filename, 'rb') as m:
         svc = joblib.load(m)
     # Normalize input face vectors
     in_encoder = Normalizer(norm='l2')
     # Load label encoder classes
     out_encoder = LabelEncoder()
-    out_encoder.classes_ = numpy.load('media/documents/'+user+'/encoder/classes.npy')
+    out_encoder.classes_ = numpy.load('./media/documents/'+user+'/encoder/classes.npy')
     return embedder, svc, in_encoder, out_encoder
 # Define a function to extract_faces using the loaded model
 def extract_face(frame, required_size=(160, 160)):
     detector = MTCNN()
     # prep image
-    image = frame.convert('RGB')
+    # image = frame.convert('RGB')
+    image = frame
     # convert to array
     pixels = asarray(frame)
     # detect faces in the image
@@ -91,17 +94,20 @@ def embedded(frame):
 
 def recognize(user, frame, alpha=60):
     try:
-        embedder=embedder
+        embedder = embedder
     except NameError:
         embedder, svc, in_encoder, out_encoder = models(user)
     output=[]
-    name, score = embedded(frame)
-    for i, n in enumerate(name):
-        if round(score[i]*100, 2) > alpha:
-            output.append(n)
-        else:
-            output.append("Unknown")
-    return output
+    try:
+        name, score = embedded(frame)
+        for i, n in enumerate(name):
+            if round(score[i]*100, 2) > alpha:
+                output.append(n)
+            else:
+                output.append("Unknown")
+    except:
+        output.append("Unknown")
+        return output
 
 if __name__ == "__main__":
     recognize()
