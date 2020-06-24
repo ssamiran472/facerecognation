@@ -18,6 +18,7 @@ warnings.filterwarnings('ignore')
 
 # Load all required model instances to current session
 def models(user):
+    
     # Load Facenet embedder
     facenet = 'models/embedder/facenet.pkl'
     infile = open(facenet, 'rb')
