@@ -12,7 +12,7 @@ from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
 
 from .register import register
-from .recognize import recognize as recognizing
+# from .recognize import recognize as recognizing
 
 
 @login_required(login_url="/login/")
@@ -125,8 +125,8 @@ def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
 
-        names = recognizing( request.user.username, files )
-        # names = ["unknown"]
+        # names = recognizing( request.user.username, files )
+        names = [""]
         do_attendance2(names, request)
         length = len(names)
         reverse_names = []
