@@ -8,6 +8,7 @@ compressed datasets of an organistion'''
 # Importing all required functions
 import os, shutil, pickle, tensorflow, numpy as np
 import numpy
+import stat
 from tensorflow.keras.models import load_model as lm
 from PIL import Image
 from numpy import asarray
@@ -33,14 +34,17 @@ def sort(folder, train, test):
         n = 10-(10-len(n_images))+1
         for i in range(n, 13):
             cv2.imwrite(folder+str(i)+'.png', img)
+            os.chmod(folder+str(i)+'.jpg', 777)
     elif len(n_images) > 10:
         pass
     _ = os.listdir(folder)
     for i, m in enumerate(_):
         if i <= 9:
             shutil.move(folder+m, train+m)
+            os.chmod(train+m, 777)
         else:
             shutil.move(folder+m, test+m)
+            os.chmod(test+m, 777)
     os.rmdir(folder)
     return 'Data ready for input'
 
@@ -101,6 +105,15 @@ def update_data(path, train, test, name):
     # extract new train dataset
     trainX, trainy = load_dataset(train, name)
     # extract new test dataset
+    testX, testy = load_dataset(test, name)
+    #Load old dataset
+    data = load(path+'/Data/employees/dataset.npz')
+    trXo, tryo, teXo, teyo = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+    data = load(path+'/Data/employees/dataset.npz')
+    trXo, tryo, teXo, teyo = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+    #Load old dataset
+    data = load(path+'/Data/employees/dataset.npz')
+    trXo, tryo, teXo, teyo = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
     testX, testy = load_dataset(test, name)
     #Load old dataset
     data = load(path+'/Data/employees/dataset.npz')
@@ -179,15 +192,6 @@ def classifier(path, user, acc=False):
     out_encoder = LabelEncoder()
     out_encoder.fit(trainy)
     trainy = out_encoder.transform(trainy)
-    testy = out_encoder.transform(testy)
-    # Fit model
-    svc = SVC(kernel='linear', probability=True)
-    svc.fit(trainX, trainy)
-    # Serialize the SVC model and label encoded classes for verification.py
-    from joblib import dump
-    m = "/var/www/djangomac/facerecognation/media/documents/"+user+"/classifier/classifier.joblib"
-    with open(m, 'wb') as file:
-        dump(svc, file)
     numpy.save('/var/www/djangomac/facerecognation/media/documents/'+user+'/encoder/classes.npy', out_encoder.classes_)
     # ****************For accuracy issues and debugging only****************
     # if acc == True:
@@ -207,10 +211,12 @@ def register(org_id, employee_name):
     try:
         from .dummy import dummy
         # Change the dummy function
-        os.rename('main/dummy.py', 'main/wait.py')
+        os.rename('/var/www/djangomac/facerecognation/main/dummy.py', '/var/www/djangomac/facerecognation/main/wait.py')
         # Create train/test directories for new registrants
-        os.mkdir(path+'/Data/train/'+employee_name)
-        os.mkdir(path+'/Data/test/'+employee_name)
+        os.mkdir(path+'/Data/train/'+employee_name, mode=0o777)
+       # os.chmod(path+'/Data/train/'+employee_name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH )
+        os.mkdir(path+'/Data/test/'+employee_name, mode=0o777)
+        #os.chmod(path+'/Data/test/'+employee_name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH )
         # print("User already registered, same name exists in data base")
         # Define static image and new train/test folder paths for registrant
         folder = path+"/static/"+str(employee_name)+"/"
@@ -225,7 +231,9 @@ def register(org_id, employee_name):
         # Update the classifier model
         ucm = classifier(path, user=org_id)
         # Revert the dummy function
-        os.rename('main/wait.py', 'main/dummy.py')
+       # os.chmod ('main/wait.py', 777)
+        os.rename('/var/www/djangomac/facerecognation/main/wait.py', '/var/www/djangomac/facerecognation/main/dummy.py')
+        #os.chmod ('main/dummy.py', 777)
         # Check for errors
         if se == 'Data ready for input':
             o = True
