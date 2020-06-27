@@ -2,6 +2,7 @@ from django.shortcuts import render, reverse
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
 
 import os
 from datetime import date
@@ -11,7 +12,7 @@ import csv
 from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
 
-from .register import register
+# from .register import register
 # from .recognize import recognize as recognizing
 
 
@@ -78,7 +79,7 @@ def registering(request):
                 image.save()
                 term_no += 1
 
-            status = register(request.user.username, name)
+            # status = register(request.user.username, name)
 
             add_register_employee_sheet(name, ids, request)
         return JsonResponse({'success': 'file uploaded successful'}, safe=False)
@@ -97,6 +98,7 @@ def recognize(request):
         try:
             del request.session['checking_success']
             request.session['checking_success']='success'
+
         except KeyError:
             return HttpResponseRedirect(reverse('extra_checking'))
         return render(request, 'recognize2.html')
@@ -124,14 +126,17 @@ def secoend_time(request):
 def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
-
+        # models=path_of_path
         # names = recognizing( request.user.username, files )
+        # folder = './media/documents/'+ str(request.user.username) + "/temp"
+        # fs = FileSystemStorage(location=folder)
+        # fs.save(files.name, files)
         names = [""]
-        do_attendance2(names, request)
+        # do_attendance2(names, request)
         length = len(names)
         reverse_names = []
         for index in  range(length, 0, -1):
-            name = names[index]
+            name = names[index-1]
             reverse_names.append(name)
         
         return JsonResponse(reverse_names, safe=False)
@@ -186,7 +191,7 @@ def do_attendance2(names, request):
         file_path = path + '/' + file_name
         date_pattern = ( str(todays.year) +'-'+ 
                          str(todays.month) +'-'+ 
-                         str( int(todays.day) + 1)
+                         str( int(todays.day) )
                         )
         column = ['name', 'id', 'total',  date_pattern]
         employes = EmployeeInfo.objects.filter(
@@ -263,7 +268,7 @@ def add_register_employee_sheet(name, emp_id, request):
     file_path = dir_path + '/' + file_name 
     date_pattern = ( str( todays_date.year ) +'-'+ 
                          str( todays_date.month ) +'-'+ 
-                         str( int(todays_date.day)+ 3 )
+                         str( int(todays_date.day) )
                     )
     
     current_time = datetime.datetime.now().strftime('%H:%M')

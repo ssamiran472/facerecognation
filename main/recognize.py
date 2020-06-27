@@ -106,8 +106,8 @@ def recognize(user, frame, alpha=60):
             else:
                 output.append("Unknown")
     except:
-        output.append("Unknown")
-        return output
+        output.append("Recognizing...")
+    return output
 
 if __name__ == "__main__":
     recognize()
