@@ -123,7 +123,7 @@
         img.id = 'img';
         ctx.drawImage( video, 0, 0, capture.width, capture.height );
 
-        img.src		= capture.toDataURL( "image/jpg" );
+        img.src		= capture.toDataURL( "image/png" );
         img.width	= 240;
         snapshot.innerHTML = '';
         snapshot.appendChild( img );
@@ -149,11 +149,13 @@
             const byte_image = captureSnapshot()
             const dataURI	= snapshot.firstChild.getAttribute( "src" );
             const blob_image = dataURItoBlob(dataURI);
+            console.log(blob_image);
             // face detection and face landmark 
             faceapi.draw.drawDetections(canvas, resizedDetections);
             
             var form = new FormData();
-            form.append("images", blob_image, "myimage.jpg");
+            form.append("images", blob_image, 'myimage.jpg');
+
             let xml = new XMLHttpRequest();
             xml.open( "POST", "{% url 'recognizing_image' %}", true )
             xml.onload = function(){
@@ -184,7 +186,7 @@
                     }
                 }
             )
-        }, 200);
+        }, 2000);
     });
 
   
