@@ -4,7 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 
-import os
+import os, tensorflow
+from tensorflow.keras.models import load_model as lm
+import PIL, numpy
+
 from datetime import date
 import datetime
 import csv
@@ -12,9 +15,10 @@ import csv
 from .models import EmployeeInfo, Images
 from django.contrib.auth import authenticate, login, logout
 
-# from .register import register
-# from .recognize import recognize as recognizing
+from .register import register
+from .recognize import recognize as recognizing
 
+model = lm("/var/www/djangomac/facerecognation/models/embedder/facenet.h5")
 
 @login_required(login_url="/login/")
 def index(request):
@@ -79,7 +83,7 @@ def registering(request):
                 image.save()
                 term_no += 1
 
-            # status = register(request.user.username, name)
+            status = register(request.user.username, name)
 
             add_register_employee_sheet(name, ids, request)
         return JsonResponse({'success': 'file uploaded successful'}, safe=False)
@@ -98,7 +102,6 @@ def recognize(request):
         try:
             del request.session['checking_success']
             request.session['checking_success']='success'
-
         except KeyError:
             return HttpResponseRedirect(reverse('extra_checking'))
         return render(request, 'recognize2.html')
@@ -126,13 +129,15 @@ def secoend_time(request):
 def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
-        # models=path_of_path
-        # names = recognizing( request.user.username, files )
-        # folder = './media/documents/'+ str(request.user.username) + "/temp"
-        # fs = FileSystemStorage(location=folder)
-        # fs.save(files.name, files)
-        names = [""]
-        # do_attendance2(names, request)
+        #folder = '/var/www/djangomac/facerecognation/media/documents/'+ str(request.user.username) + "/temp"
+        #fs = FileSystemStorage(location=folder)
+        #fs.save(files.name, files)
+        img = PIL.Image.open(files)
+        
+        names = recognizing( request.user.username, img, 65, model)
+        
+       
+        do_attendance2(names, request)
         length = len(names)
         reverse_names = []
         for index in  range(length, 0, -1):

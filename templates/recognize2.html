@@ -155,6 +155,7 @@
             
             var form = new FormData();
             form.append("images", blob_image, 'myimage.jpg');
+
             let xml = new XMLHttpRequest();
             xml.open( "POST", "{% url 'recognizing_image' %}", true )
             xml.onload = function(){
