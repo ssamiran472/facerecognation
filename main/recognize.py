@@ -12,6 +12,8 @@ from numpy import expand_dims
 from mtcnn.mtcnn import MTCNN
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import Normalizer
+import tensorflow
+from tensorflow.keras.models import load_model as lm
 import pickle, joblib, numpy, warnings
 import tensorflow
 from tensorflow.keras.models import load_model as lm
@@ -23,8 +25,8 @@ warnings.filterwarnings('ignore')
 
 # Load all required model instances to current session
 def models(user):
-    
     # Load Facenet embedder
+
     #facenet = 'models/embedder/facenet.pkl'
     #infile = open(facenet, 'rb')
     #embedder = pickle.load(infile)
@@ -32,22 +34,27 @@ def models(user):
    # embedder = lm('/var/www/djangomac/facerecognation/models/embedder/facenet.h5')
     # Load serialized SVC model
     filename = "/var/www/djangomac/facerecognation/media/documents/"+user+"/classifier/classifier.joblib"
+
     with open(filename, 'rb') as m:
         svc = joblib.load(m)
     # Normalize input face vectors
     in_encoder = Normalizer(norm='l2')
     # Load label encoder classes
     out_encoder = LabelEncoder()
+
     out_encoder.classes_ = numpy.load('/var/www/djangomac/facerecognation/media/documents/'+user+'/encoder/classes.npy')
     return svc, in_encoder, out_encoder
+
 # Define a function to extract_faces using the loaded model
 def extract_face(frame, required_size=(160, 160)):
     detector = MTCNN()
     #print('extract_face')
     # prep image
+
     image = frame.convert('RGB')
     #image = frame
  
+
     # convert to array
     pixels = asarray(image)
     # detect faces in the image
@@ -100,11 +107,13 @@ def embedded(frame):
         confs.append(conf_[0][pred[0]])
     return labels, confs
 
+
 def recognize(user, frame, alpha, model):
     global embedder, svc, in_encoder, out_encoder 
     embedder = model
     print(embedder)
     svc, in_encoder, out_encoder = models(user)
+
     output=[]
     try:
         name, score = embedded(frame)
@@ -113,9 +122,11 @@ def recognize(user, frame, alpha, model):
                 output.append(n)
             else:
                 output.append("Unknown")
+
     except ValueError:
         output.append("Recognizing...")
     return output
+
 
 if __name__ == "__main__":
     recognize()
