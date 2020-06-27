@@ -2,8 +2,12 @@ from django.shortcuts import render, reverse
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
 
-import os
+import os, tensorflow
+from tensorflow.keras.models import load_model as lm
+import PIL, numpy
+
 from datetime import date
 import datetime
 import csv
@@ -14,6 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 from .register import register
 from .recognize import recognize as recognizing
 
+model = lm("/var/www/djangomac/facerecognation/models/embedder/facenet.h5")
 
 @login_required(login_url="/login/")
 def index(request):
@@ -124,14 +129,19 @@ def secoend_time(request):
 def recognizing_image(request):
     if request.method == 'POST':
         files = request.FILES['images']
-
-        names = recognizing( request.user.username, files )
-        names = [""]
+        #folder = '/var/www/djangomac/facerecognation/media/documents/'+ str(request.user.username) + "/temp"
+        #fs = FileSystemStorage(location=folder)
+        #fs.save(files.name, files)
+        img = PIL.Image.open(files)
+        
+        names = recognizing( request.user.username, img, 65, model)
+        
+       
         do_attendance2(names, request)
         length = len(names)
         reverse_names = []
         for index in  range(length, 0, -1):
-            name = names[index]
+            name = names[index-1]
             reverse_names.append(name)
         
         return JsonResponse(reverse_names, safe=False)
@@ -186,7 +196,7 @@ def do_attendance2(names, request):
         file_path = path + '/' + file_name
         date_pattern = ( str(todays.year) +'-'+ 
                          str(todays.month) +'-'+ 
-                         str( int(todays.day) + 1)
+                         str( int(todays.day) )
                         )
         column = ['name', 'id', 'total',  date_pattern]
         employes = EmployeeInfo.objects.filter(
@@ -263,7 +273,7 @@ def add_register_employee_sheet(name, emp_id, request):
     file_path = dir_path + '/' + file_name 
     date_pattern = ( str( todays_date.year ) +'-'+ 
                          str( todays_date.month ) +'-'+ 
-                         str( int(todays_date.day)+ 3 )
+                         str( int(todays_date.day) )
                     )
     
     current_time = datetime.datetime.now().strftime('%H:%M')

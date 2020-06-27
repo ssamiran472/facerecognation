@@ -15,6 +15,9 @@ from sklearn.preprocessing import Normalizer
 import pickle, joblib, numpy, warnings
 import tensorflow
 from tensorflow.keras.models import load_model as lm
+#import tensorflow.keras.backend.tensorflow_backend as tb
+#tb._SYMBOLIC_SCOPE.value=True
+
 # Ignore any unnecessary warnings
 warnings.filterwarnings('ignore')
 
@@ -26,8 +29,7 @@ def models(user):
     #infile = open(facenet, 'rb')
     #embedder = pickle.load(infile)
     #infile.close()
-    embedder = lm('/var/www/djangomac/facerecognation/models/embedder/facenet.h5')
-    #embedder = lm("/var/www/djangomac/facerecognation/models/embedder/facenet.h5")
+   # embedder = lm('/var/www/djangomac/facerecognation/models/embedder/facenet.h5')
     # Load serialized SVC model
     filename = "/var/www/djangomac/facerecognation/media/documents/"+user+"/classifier/classifier.joblib"
     with open(filename, 'rb') as m:
@@ -37,16 +39,20 @@ def models(user):
     # Load label encoder classes
     out_encoder = LabelEncoder()
     out_encoder.classes_ = numpy.load('/var/www/djangomac/facerecognation/media/documents/'+user+'/encoder/classes.npy')
-    return embedder, svc, in_encoder, out_encoder
+    return svc, in_encoder, out_encoder
 # Define a function to extract_faces using the loaded model
 def extract_face(frame, required_size=(160, 160)):
     detector = MTCNN()
+    #print('extract_face')
     # prep image
-    #image = frame.convert('RGB')
+    image = frame.convert('RGB')
+    #image = frame
+ 
     # convert to array
-    pixels = asarray(frame)
+    pixels = asarray(image)
     # detect faces in the image
     results = detector.detect_faces(pixels)
+    print('length', len(results))
     _ = len(results)
     faces = numpy.zeros((_, 160,160,3))
     # Search for multiple faces and append as an array
@@ -76,6 +82,7 @@ def get_embedding(model, face_pixels):
 # Define a function that returns the predicted labels and confident scores
 def embedded(frame):
     #embedder, svc, in_encoder, out_encoder = models()
+    print('embedded')
     imgs = extract_face(frame)
     _ = len(imgs)
     embs = numpy.zeros((_, 128))
@@ -93,19 +100,21 @@ def embedded(frame):
         confs.append(conf_[0][pred[0]])
     return labels, confs
 
-def recognize(user, frame, alpha=60):
-   # try:
-    #    embedder0=embedder
-   # except (KeyError, NameError, ValueError, UnboundLocalError):
+def recognize(user, frame, alpha, model):
     global embedder, svc, in_encoder, out_encoder 
-    embedder, svc, in_encoder, out_encoder = models(user)
+    embedder = model
+    print(embedder)
+    svc, in_encoder, out_encoder = models(user)
     output=[]
-    name, score = embedded(frame)
-    for i, n in enumerate(name):
-        if round(score[i]*100, 2) > alpha:
-            output.append(n)
-        else:
-            output.append("Unknown")
+    try:
+        name, score = embedded(frame)
+        for i, n in enumerate(name):
+            if round(score[i]*100, 2) > alpha:
+                output.append(n)
+            else:
+                output.append("Unknown")
+    except ValueError:
+        output.append("Recognizing...")
     return output
 
 if __name__ == "__main__":
